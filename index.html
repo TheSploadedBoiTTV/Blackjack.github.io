@@ -6,27 +6,25 @@
     <title>Blackjack</title>
     <style>
         h2 {
-          color: #feda4a;
+            color: #feda4a;
         }
         h1 {
-          color: #feda4a;
+            color: #feda4a;
         }
         marquee {
-          :500;
-        }
-
+            scrollamount: 20;
         }
         #player {
-          border: 2px solid #feda4a;
-          border-radius: 10px;
-          padding: 10px;
-          margin-bottom: 20px;
+            border: 2px solid #feda4a;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
         }
         body {
             font-family: "Arial Black", Arial, sans-serif;
-              background-color: #162537;
-              color: #fff;
-              text-align: center;
+            background-color: #162537;
+            color: #fff;
+            text-align: center;
         }
         #message {
             font-size: 24px;
@@ -52,29 +50,26 @@
             margin-top: 20px;
         }
         .card {
-          background-color: #fff;
-          color: #000;
-        }
-        #player-hand {
-          margin-bottom: 20px;
+            background-color: #fff;
+            color: #000;
         }
         #buttons button {
-          background-color: #feda4a;
-          color: #162537;
-          border: none;
-          border-radius: 5px;
-          padding: 10px 20px;
-          font-size: 18px;
-          margin: 0 10px;
-          cursor: pointer;
+            background-color: #feda4a;
+            color: #162537;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 0 10px;
+            cursor: pointer;
         }
         #buttons button:hover {
-          background-color: #ffc107;
+            background-color: #ffc107;
         }
     </style>
 </head>
 <body>
-       <marquee scrollamount="20"><h1>Blackjack</h1></marquee>
+    <marquee scrollamount="20"><h1>Blackjack</h1> | High Score: <span id="high-score">0</span></marquee>
     <div id="player"></div>
     <h2>Dealer</h2>
     <div class="hand" id="dealer-hand">
@@ -90,6 +85,7 @@
         <button id="hit" disabled>Hit</button>
         <button id="stand" disabled>Stand</button>
     </div>
+    <div id="message"></div>
 
     <script>
         let deck = [];
@@ -104,13 +100,15 @@
         let standButton = document.getElementById('stand');
         let playerBalance = 100;
         let betAmount = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        document.getElementById('high-score').textContent = highScore;
 
         function createDeck() {
             const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
             const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
             for (let suit of suits) {
                 for (let value of values) {
-                    deck.push({suit, value});
+                    deck.push({ suit, value });
                 }
             }
         }
@@ -127,7 +125,7 @@
 
         function renderCards() {
             dealerCard1.textContent = `${dealerHand[0].value} of ${dealerHand[0].suit}`;
-            dealerCard2.textContent = '';
+            dealerCard2.textContent = `${dealerHand[1].value} of ${dealerHand[1].suit}`;
             playerHandDiv.innerHTML = '';
             for (let card of playerHand) {
                 let cardDiv = document.createElement('div');
@@ -140,6 +138,11 @@
         function updateBalance(amount) {
             playerBalance += amount;
             balance.textContent = `$${playerBalance}`;
+            if (playerBalance > highScore) {
+                highScore = playerBalance;
+                document.getElementById('high-score').textContent = highScore;
+                localStorage.setItem('highScore', highScore);
+            }
         }
 
         function dealRound() {
@@ -200,10 +203,9 @@
             let playerTotal = calculateHand(playerHand);
             if (playerTotal > 21) {
                 message.textContent = 'Player bust, dealer wins!';
-                updateBalance(-betAmount);
                 hitButton.disabled = true;
                 standButton.disabled = true;
-                setTimeout(function() {
+                setTimeout(function () {
                     dealRound();
                 }, 2000);
             }
@@ -219,7 +221,7 @@
             checkWinner();
             hitButton.disabled = true;
             standButton.disabled = true;
-            setTimeout(function() {
+            setTimeout(function () {
                 dealRound();
             }, 2000);
         });
