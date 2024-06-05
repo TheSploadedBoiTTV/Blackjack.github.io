@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+    <style>
+        h2 {
+          color: #feda4a;
+        }
+        h1 {
+          color: #feda4a;
+        }
+        marquee {
+          :500;
+        }
+
+        }
+        #player {
+          border: 2px solid #feda4a;
+          border-radius: 10px;
+          padding: 10px;
+          margin-bottom: 20px;
+        }
+        body {
+            font-family: "Arial Black", Arial, sans-serif;
+              background-color: #162537;
+              color: #fff;
+              text-align: center;
+        }
+        #message {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .hand {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .card {
+            width: 100px;
+            height: 150px;
+            margin: 0 10px;
+            border: 1px solid black;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        #player-hand {
+            margin-bottom: 20px;
+        }
+        #buttons {
+            margin-top: 20px;
+        }
+        .card {
+          background-color: #fff;
+          color: #000;
+        }
+        #player-hand {
+          margin-bottom: 20px;
+        }
+        #buttons button {
+          background-color: #feda4a;
+          color: #162537;
+          border: none;
+          border-radius: 5px;
+          padding: 10px 20px;
+          font-size: 18px;
+          margin: 0 10px;
+          cursor: pointer;
+        }
+        #buttons button:hover {
+          background-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+       <marquee scrollamount="20"><h1>Blackjack</h1></marquee>
+    <div id="player"></div>
+    <h2>Dealer</h2>
+    <div class="hand" id="dealer-hand">
+        <div class="card" id="dealer-card-1"></div>
+        <div class="card" id="dealer-card-2"></div>
+    </div>
+    <div id="player">
+        <h2>Player</h2>
+        <div class="hand" id="player-hand"></div>
+        <p>Balance: <span id="balance">$100</span></p>
+    </div>
+    <div id="buttons">
+        <button id="hit" disabled>Hit</button>
+        <button id="stand" disabled>Stand</button>
+    </div>
+
+    <script>
+        let deck = [];
+        let playerHand = [];
+        let dealerHand = [];
+        let message = document.getElementById('message');
+        let dealerCard1 = document.getElementById('dealer-card-1');
+        let dealerCard2 = document.getElementById('dealer-card-2');
+        let playerHandDiv = document.getElementById('player-hand');
+        let balance = document.getElementById('balance');
+        let hitButton = document.getElementById('hit');
+        let standButton = document.getElementById('stand');
+        let playerBalance = 100;
+        let betAmount = 0;
+
+        function createDeck() {
+            const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+            const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            for (let suit of suits) {
+                for (let value of values) {
+                    deck.push({suit, value});
+                }
+            }
+        }
+
+        function shuffleDeck() {
+            deck.sort(() => Math.random() - 0.5);
+        }
+
+        function dealCards() {
+            playerHand = [deck.pop(), deck.pop()];
+            dealerHand = [deck.pop(), deck.pop()];
+            renderCards();
+        }
+
+        function renderCards() {
+            dealerCard1.textContent = `${dealerHand[0].value} of ${dealerHand[0].suit}`;
+            dealerCard2.textContent = '';
+            playerHandDiv.innerHTML = '';
+            for (let card of playerHand) {
+                let cardDiv = document.createElement('div');
+                cardDiv.classList.add('card');
+                cardDiv.textContent = `${card.value} of ${card.suit}`;
+                playerHandDiv.appendChild(cardDiv);
+            }
+        }
+
+        function updateBalance(amount) {
+            playerBalance += amount;
+            balance.textContent = `$${playerBalance}`;
+        }
+
+        function dealRound() {
+            betAmount = parseInt(prompt("Please enter the amount to bet (Current Balance: $" + playerBalance + ")"));
+            if (betAmount <= playerBalance && betAmount > 0) {
+                updateBalance(-betAmount);
+                dealCards();
+                hitButton.disabled = false;
+                standButton.disabled = false;
+            } else {
+                alert('Invalid bet amount. Please enter a valid amount.');
+                dealRound();
+            }
+        }
+
+        function calculateHand(hand) {
+            let total = 0;
+            let hasAce = false;
+            for (let card of hand) {
+                if (card.value === 'A') {
+                    hasAce = true;
+                }
+                if (card.value === 'J' || card.value === 'Q' || card.value === 'K') {
+                    total += 10;
+                } else if (card.value === 'A') {
+                    continue;
+                } else {
+                    total += Number(card.value);
+                }
+            }
+            if (hasAce && total + 10 <= 21) {
+                total += 10;
+            }
+            return total;
+        }
+
+        function checkWinner() {
+            let dealerTotal = calculateHand(dealerHand);
+            let playerTotal = calculateHand(playerHand);
+
+            if (playerTotal > 21) {
+                message.textContent = 'Player bust, dealer wins!';
+                updateBalance(-betAmount);
+            } else if (playerTotal > dealerTotal || dealerTotal > 21) {
+                message.textContent = 'Player wins!';
+                updateBalance(betAmount * 2);
+            } else if (playerTotal < dealerTotal) {
+                message.textContent = 'Dealer wins!';
+            } else {
+                message.textContent = 'It\'s a tie!';
+                updateBalance(betAmount);
+            }
+        }
+
+        hitButton.addEventListener('click', () => {
+            playerHand.push(deck.pop());
+            renderCards();
+            let playerTotal = calculateHand(playerHand);
+            if (playerTotal > 21) {
+                message.textContent = 'Player bust, dealer wins!';
+                updateBalance(-betAmount);
+                hitButton.disabled = true;
+                standButton.disabled = true;
+                setTimeout(function() {
+                    dealRound();
+                }, 2000);
+            }
+        });
+
+        standButton.addEventListener('click', () => {
+            let dealerTotal = calculateHand(dealerHand);
+            while (dealerTotal < 17) {
+                dealerHand.push(deck.pop());
+                dealerTotal = calculateHand(dealerHand);
+            }
+            renderCards();
+            checkWinner();
+            hitButton.disabled = true;
+            standButton.disabled = true;
+            setTimeout(function() {
+                dealRound();
+            }, 2000);
+        });
+
+        createDeck();
+        shuffleDeck();
+        dealRound();
+    </script>
+</body>
+</html>
